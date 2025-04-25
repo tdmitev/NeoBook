@@ -1,0 +1,5 @@
+rootProject.name = 'NeoBook'
+include ':BE'
+project(':BE').projectDir = file('BE')
+include ':BE:user-service'
+project(':BE:user-service').projectDir = file('BE/user-service')
