@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 import java.util.List;
 
@@ -20,28 +21,23 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of("http://localhost:4200"));
-        cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        cfg.setAllowedHeaders(List.of("Authorization","Content-Type"));
-        cfg.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/api/**", cfg);
-        return src;
-    }
-
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // health & info
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/students/**").hasAnyRole("TEACHER","HEADMASTER","ADMIN")
+                        // PROFILE endpoints
+                        .requestMatchers("/api/profile/**").authenticated()
+                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/register/**").authenticated()
+                        // STUDENTS
+                        .requestMatchers("/api/students/**")
+                        .hasAnyRole("TEACHER","HEADMASTER","ADMIN")
+                        // всичко останало – изисква аутентикация
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -52,13 +48,21 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public CommonsRequestLoggingFilter requestLoggingFilter() {
+        CommonsRequestLoggingFilter f = new CommonsRequestLoggingFilter();
+        f.setIncludeQueryString(true);
+        f.setIncludePayload(false);
+        f.setBeforeMessagePrefix(">>> REQUEST ");
+        return f;
+    }
+
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter conv = new JwtGrantedAuthoritiesConverter();
-        conv.setAuthorityPrefix("ROLE_");
+        conv.setAuthorityPrefix("");
         conv.setAuthoritiesClaimName("roles");
         JwtAuthenticationConverter c = new JwtAuthenticationConverter();
         c.setJwtGrantedAuthoritiesConverter(conv);
         return c;
     }
 }
-
