@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # ---- Keycloak с persistence ----
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.0.0
+    command: start-dev
+    environment:
+      KC_DB: h2
+      KC_HEALTH_ENABLED: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+    ports:
+      - "8080:8080"
+
+  # ---- PostgreSQL за user-service ----
+  db-user:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: user_service
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
+  # ---- PostgreSQL за school-service ----
+  db-school:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: school_service
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+    volumes:
+      - school-db-data:/var/lib/postgresql/data
+
+  # ---- MongoDB за notebook-service ----
+  mongo:
+    image: mongo:6
+    volumes:
+      - mongo-data:/data/db
+
+  # ---- user-service ----
+  user-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-user:5432/user_service
+      SPRING_DATASOURCE_USERNAME:
+      SPRING_DATASOURCE_PASSWORD:
+    depends_on:
+      - db-user
+      - keycloak
+
+  # ---- school-service ----
+  school-service:
+    build:
+      context: ../school-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-school:5432/school_service
+      SPRING_DATASOURCE_USERNAME:
+      SPRING_DATASOURCE_PASSWORD:
+    depends_on:
+      - db-school
+
+  # ---- notebook-service ----
+  notebook-service:
+    build:
+      context: ../notebook-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/notebook
+    depends_on:
+      - mongo
+
+  # ---- api-gateway ----
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    depends_on:
+      - keycloak
+      - user-service
+      - school-service
+      - notebook-service
+
+volumes:
+  keycloak-data:
+  user-db-data:
+  school-db-data:
+  mongo-data:
