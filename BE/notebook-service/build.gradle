@@ -18,11 +18,11 @@ repositories {
 }
 
 dependencies {
-    // HTTP API (REST)
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Reactive Web API
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-    // MongoDB
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    // Reactive MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 
     // Spring Security + JWT validation
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.11.0'
 }
 
 tasks.named('test') {
