@@ -22,7 +22,10 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('TEACHER','HEADMASTER','ADMIN')")
-    public List<StudentDto> getAllStudents() {
+    public List<StudentDto> getStudents(@RequestParam(value = "classId", required = false) Long classId) {
+        if (classId != null) {
+            return studentService.findAllBySchoolClassId(classId);
+        }
         return studentService.findAll();
     }
 
@@ -50,6 +53,30 @@ public class StudentController {
     @PreAuthorize("hasAnyRole('TEACHER','HEADMASTER','ADMIN')")
     public void deleteStudent(@PathVariable("id") UUID id) {
         studentService.delete(id);
+    }
+
+    @PutMapping("/add-class/{classId}")
+    @PreAuthorize("hasAnyRole('HEADMASTER','ADMIN')")
+    public void addClass(@PathVariable("classId") Long classId, @RequestBody UUID studentId) {
+        studentService.assignStudentToClass(studentId, classId);
+    }
+
+    @PutMapping("/remove-class/{classId}")
+    @PreAuthorize("hasAnyRole('HEADMASTER','ADMIN')")
+    public void removeClass(@PathVariable("classId") Long classId, @RequestBody UUID studentId) {
+        studentService.unassignStudentFromClass(studentId, classId);
+    }
+
+    @PutMapping("/clear-class/{classId}")
+    @PreAuthorize("hasAnyRole('HEADMASTER','ADMIN')")
+    public void clearClass(@PathVariable("classId") Long classId) {
+        studentService.clearClassReference(classId);
+    }
+
+    @PutMapping("/clear-class")
+    @PreAuthorize("hasAnyRole('HEADMASTER','ADMIN')")
+    public void clearClassForStudents(@RequestBody List<UUID> studentIds) {
+        studentService.clearClassForStudents(studentIds);
     }
 }
 

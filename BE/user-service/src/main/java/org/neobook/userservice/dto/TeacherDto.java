@@ -10,5 +10,7 @@ public record TeacherDto(
         String lastName,
         String email,
         String phone,
-        List<String> roles
+        List<String> roles,
+        Long schoolId,
+        List<Long> subjectIds
 ) {}

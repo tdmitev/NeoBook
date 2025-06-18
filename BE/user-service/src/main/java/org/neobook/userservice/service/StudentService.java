@@ -16,5 +16,15 @@ public interface StudentService {
     void delete(UUID keycloakUserId);
     Student getEntityByKeycloakUserId(UUID keycloakUserId);
     StudentDto updateParents(UUID studentKeycloakUserId, List<UUID> parentKeycloakUserIds);
+
+    List<StudentDto> findAllBySchoolClassId(Long classId);
+
+    void assignStudentToClass(UUID studentKeycloakUserId, Long classId);
+
+    void unassignStudentFromClass(UUID studentKeycloakUserId, Long classId);
+
+    void clearClassForStudents(List<UUID> studentKeycloakUserIds);
+
+    void clearClassReference(Long classId);
 }
 

@@ -6,5 +6,6 @@ import java.util.UUID;
 public record CreateStudentDto(
         UUID keycloakUserId,
         String phone,
-        List<UUID> parentKeycloakUserIds
+        List<UUID> parentKeycloakUserIds,
+        Long schoolClassId
 ) {}

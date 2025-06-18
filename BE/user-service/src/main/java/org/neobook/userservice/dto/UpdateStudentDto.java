@@ -5,5 +5,6 @@ import java.util.UUID;
 
 public record UpdateStudentDto(
         String phone,
-        List<UUID> parentKeycloakUserIds
+        List<UUID> parentKeycloakUserIds,
+        Long schoolClassId
 ) {}

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.neobook.userservice.dto.CreateStudentDto;
 import org.neobook.userservice.dto.StudentDto;
 import org.neobook.userservice.dto.UpdateStudentDto;
+import org.neobook.userservice.service.SchoolServiceClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,15 +23,18 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper mapper;
     private final SharedLookupService lookup;
     private final KeycloakService keycloakService;
+    private final SchoolServiceClient schoolClient;
 
     public StudentServiceImpl(StudentRepository repo,
                               StudentMapper mapper,
                               SharedLookupService lookup,
-                              KeycloakService keycloakService) {
+                              KeycloakService keycloakService,
+                              SchoolServiceClient schoolClient) {
         this.repo   = repo;
         this.mapper = mapper;
         this.lookup = lookup;
         this.keycloakService = keycloakService;
+        this.schoolClient = schoolClient;
     }
 
     @Override
@@ -48,6 +52,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     public StudentDto create(CreateStudentDto dto) {
+        if (dto.schoolClassId() != null) {
+            schoolClient.getSchoolClassById(dto.schoolClassId());
+        }
         keycloakService.assignRealmRole(dto.keycloakUserId(), "ROLE_STUDENT");
         Student entity = mapper.toEntity(dto);
         repo.save(entity);
@@ -57,6 +64,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     public StudentDto update(UUID kcId, UpdateStudentDto dto) {
+        if (dto.schoolClassId() != null) {
+            schoolClient.getSchoolClassById(dto.schoolClassId());
+        }
         Student entity = repo.findByKeycloakUserId(kcId)
                 .orElseThrow(() -> new RuntimeException("Student not found: " + kcId));
         mapper.updateEntityFromDto(dto, entity);
@@ -89,6 +99,54 @@ public class StudentServiceImpl implements StudentService {
         }
         repo.save(student);
         return mapper.toDto(student);
+    }
+
+    @Override
+    public List<StudentDto> findAllBySchoolClassId(Long classId) {
+        schoolClient.getSchoolClassById(classId);
+        return repo.findAllBySchoolClassId(classId).stream()
+                .map(mapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public void assignStudentToClass(UUID studentKcId, Long classId) {
+        schoolClient.getSchoolClassById(classId);
+        Student student = getEntityByKeycloakUserId(studentKcId);
+        student.setSchoolClassId(classId);
+        repo.save(student);
+    }
+
+    @Override
+    public void unassignStudentFromClass(UUID studentKcId, Long classId) {
+        if (classId != null) {
+            schoolClient.getSchoolClassById(classId);
+        }
+        Student student = getEntityByKeycloakUserId(studentKcId);
+        if (classId == null || classId.equals(student.getSchoolClassId())) {
+            student.setSchoolClassId(null);
+            repo.save(student);
+        }
+    }
+
+    @Override
+    public void clearClassForStudents(List<UUID> studentKcIds) {
+        if (studentKcIds == null) return;
+        for (UUID id : studentKcIds) {
+            Student s = getEntityByKeycloakUserId(id);
+            s.setSchoolClassId(null);
+            repo.save(s);
+        }
+    }
+
+    @Override
+    public void clearClassReference(Long classId) {
+        schoolClient.getSchoolClassById(classId);
+        List<Student> students = repo.findAllBySchoolClassId(classId);
+        for (Student s : students) {
+            s.setSchoolClassId(null);
+        }
+        repo.saveAll(students);
     }
 
 }

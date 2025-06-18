@@ -9,5 +9,6 @@ public record StudentDto(
         String firstName,
         String lastName,
         String phone,
-        List<UUID> parentKeycloakUserIds
+        List<UUID> parentKeycloakUserIds,
+        Long schoolClassId
 ) {}

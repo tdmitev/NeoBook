@@ -13,6 +13,18 @@ public class Teacher extends BaseEntity {
     @Column(length = 20)
     private String phone;
 
+    @Column(name = "school_id")
+    private Long schoolId;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "teacher_subject_ids",
+            schema = "user_service",
+            joinColumns = @JoinColumn(name = "teacher_id")
+    )
+    @Column(name = "subject_id")
+    private java.util.Set<Long> subjectIds = new java.util.HashSet<>();
+
     public UUID getKeycloakUserId() {
         return keycloakUserId;
     }
@@ -27,5 +39,21 @@ public class Teacher extends BaseEntity {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Long getSchoolId() {
+        return schoolId;
+    }
+
+    public void setSchoolId(Long schoolId) {
+        this.schoolId = schoolId;
+    }
+
+    public java.util.Set<Long> getSubjectIds() {
+        return subjectIds;
+    }
+
+    public void setSubjectIds(java.util.Set<Long> subjectIds) {
+        this.subjectIds = subjectIds;
     }
 }

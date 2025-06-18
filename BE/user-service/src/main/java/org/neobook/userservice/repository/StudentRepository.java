@@ -10,4 +10,5 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     Optional<Student> findByKeycloakUserId(UUID keycloakUserId);
     boolean existsByKeycloakUserId(UUID keycloakUserId);
     List<Student> findAllByKeycloakUserIdIn(List<UUID> keycloakUserIds);
+    List<Student> findAllBySchoolClassId(Long schoolClassId);
 }

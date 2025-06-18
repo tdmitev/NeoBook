@@ -39,6 +39,7 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
     implementation 'org.keycloak:keycloak-admin-client:22.0.3'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     /* --- Тестове --- */
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -49,3 +50,5 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 //td_mitev@Todors-MacBook-Pro bin % ./kc.sh start-dev
+// отварям папката neobook-deploy: docker compose up --build
+// за спиране на контейнерите: docker compose down

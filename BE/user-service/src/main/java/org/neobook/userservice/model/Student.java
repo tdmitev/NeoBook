@@ -15,6 +15,10 @@ public class Student extends BaseEntity {
     @Column(length = 20)
     private String phone;
 
+    @Column(name = "school_class_id")
+    private Long schoolClassId;
+
+
     @ManyToMany
     @JoinTable(
             name = "student_parents",
@@ -46,5 +50,13 @@ public class Student extends BaseEntity {
 
     public void setParents(Set<Parent> parents) {
         this.parents = parents;
+    }
+
+    public Long getSchoolClassId() {
+        return schoolClassId;
+    }
+
+    public void setSchoolClassId(Long schoolClassId) {
+        this.schoolClassId = schoolClassId;
     }
 }
