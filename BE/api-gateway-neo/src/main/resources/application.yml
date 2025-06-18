@@ -1,0 +1,60 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+
+  security:
+    # 1) client (OIDC code flow)
+    oauth2:
+      client:
+        registration:
+          api-gateway:
+            client-id: api-gateway
+            client-secret: 6gc491QRs5vmWlYXitk5I6hMCE5vPqeL
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          api-gateway:
+            issuer-uri: http://keycloak:8080/realms/NeoBook
+
+      # 2) resource-server (JWT validation for incoming API calls)
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/NeoBook
+
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://user-service:8081
+          predicates:
+            - Path=/users/**
+          filters:
+            - StripPrefix=1
+
+        - id: school-service
+          uri: http://school-service:8082
+          predicates:
+            - Path=/school/**
+          filters:
+            - StripPrefix=1
+
+        - id: notebook-service
+          uri: http://notebook-service:8083
+          predicates:
+            - Path=/notebook/**
+          filters:
+            - StripPrefix=1
+
+#eureka:
+#  client:
+#    register-with-eureka: true
+#    fetch-registry: true
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/

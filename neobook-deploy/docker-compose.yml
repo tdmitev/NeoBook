@@ -1,79 +1,99 @@
-version: '3.8'
-
 services:
-  # ---- Keycloak с persistence ----
-  keycloak:
-    image: quay.io/keycloak/keycloak:21.0.0
-    command: start-dev
+  # ---- PostgreSQL за Keycloak (trust-mode) ----
+  keycloak-db:
+    image: postgres:14
     environment:
-      KC_DB: h2
-      KC_HEALTH_ENABLED: "true"
+      POSTGRES_DB: keycloak
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - keycloak-pg-data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.2
+    command: start-dev --import-realm
+    environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ""
+    depends_on:
+      - keycloak-db
     volumes:
-      - keycloak-data:/opt/keycloak/data
+      - "./realm-export.json:/opt/keycloak/data/import/realm-export.json:ro"
+      - "keycloak-data:/opt/keycloak/data"
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 20
 
-  # ---- PostgreSQL за user-service ----
   db-user:
     image: postgres:14
     environment:
       POSTGRES_DB: user_service
-      POSTGRES_USER:
-      POSTGRES_PASSWORD:
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - user-db-data:/var/lib/postgresql/data
 
-  # ---- PostgreSQL за school-service ----
   db-school:
     image: postgres:14
     environment:
       POSTGRES_DB: school_service
-      POSTGRES_USER:
-      POSTGRES_PASSWORD:
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - school-db-data:/var/lib/postgresql/data
 
-  # ---- MongoDB за notebook-service ----
   mongo:
     image: mongo:6
     volumes:
       - mongo-data:/data/db
 
-  # ---- user-service ----
   user-service:
     build:
-      context: ../user-service
+      context: ../BE/user-service
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-user:5432/user_service
-      SPRING_DATASOURCE_USERNAME:
-      SPRING_DATASOURCE_PASSWORD:
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ""
     depends_on:
       - db-user
       - keycloak
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # ---- school-service ----
   school-service:
     build:
-      context: ../school-service
+      context: ../BE/school-service
       dockerfile: Dockerfile
     ports:
       - "8082:8082"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-school:5432/school_service
-      SPRING_DATASOURCE_USERNAME:
-      SPRING_DATASOURCE_PASSWORD:
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ""
     depends_on:
       - db-school
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # ---- notebook-service ----
   notebook-service:
     build:
-      context: ../notebook-service
+      context: ../BE/notebook-service
       dockerfile: Dockerfile
     ports:
       - "8083:8083"
@@ -81,21 +101,30 @@ services:
       SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/notebook
     depends_on:
       - mongo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # ---- api-gateway ----
   api-gateway:
     build:
-      context: ../api-gateway
+      context: ../BE/api-gateway-neo
       dockerfile: Dockerfile
     ports:
       - "8090:8090"
     depends_on:
-      - keycloak
-      - user-service
-      - school-service
-      - notebook-service
+      keycloak:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      school-service:
+        condition: service_started
+      notebook-service:
+        condition: service_started
 
 volumes:
+  keycloak-pg-data:
   keycloak-data:
   user-db-data:
   school-db-data:
