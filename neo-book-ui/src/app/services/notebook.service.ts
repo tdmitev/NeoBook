@@ -11,4 +11,14 @@ export class NotebookService {
   getGrades(studentId: number): Observable<Grade[]> {
     return this.http.get<Grade[]>(`http://localhost:8081/api/grades?studentId=${studentId}`)
   }
+
+  addGrade(studentId: number, subjectId: number, grade: number, teacherId: number) {
+    return this.http.post(`http://localhost:8081/api/grades`, {
+      grade,
+      subjectId,
+      studentId,
+      date: Date.now(),
+      teacherId
+    });
+  }
 }

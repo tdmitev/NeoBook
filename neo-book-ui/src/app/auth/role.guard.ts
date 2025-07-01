@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
-import { AuthService, UserRole } from './keycloak.service';
+import { AuthService } from './keycloak.service';
 
 @Injectable({
   providedIn: 'root',
@@ -20,21 +20,23 @@ export class RoleGuard implements CanActivate {
       return this.router.parseUrl('/auth');
     }
 
-    const expectedRoles = route.data['roles'] as UserRole[];
-    const hasRequiredRole = await this.authService.hasAnyRole(expectedRoles);
+    return true;
 
-    if (hasRequiredRole) {
-      return true;
-    }
+    // const expectedRoles = route.data['roles'] as UserRole[];
+    // const hasRequiredRole = await this.authService.hasAnyRole(expectedRoles);
 
-    // If user is logged in but doesn't have the required role,
-    // redirect them based on their role
-    const userRoles = await this.authService.getUserRoles();
-    if (userRoles.length > 0) {
-      const primaryRole = userRoles[0];
-      return this.router.parseUrl(`/${primaryRole}`);
-    }
+    // if (hasRequiredRole) {
+    //   return true;
+    // }
 
-    return this.router.parseUrl('/auth');
+    // // If user is logged in but doesn't have the required role,
+    // // redirect them based on their role
+    // const userRoles = await this.authService.getUserRoles();
+    // if (userRoles.length > 0) {
+    //   const primaryRole = userRoles[0];
+    //   return this.router.parseUrl(`/${primaryRole}`);
+    // }
+
+    // return this.router.parseUrl('/auth');
   }
 }

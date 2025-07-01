@@ -11,22 +11,26 @@ export class SchoolService {
   private readonly http = inject(HttpClient);
 
   getSchools(): Observable<School[]> {
-    return this.http.get<School[]>('localhost:8082/api/schools');
+    return this.http.get<School[]>('localhost:8081/api/schools');
   }
 
   getSchoolById(id: number): Observable<School> {
-    return this.http.get<School>(`localhost:8082/api/schools/${id}`);
+    return this.http.get<School>(`localhost:8081/api/schools/${id}`);
   }
 
   getSchoolClass(schoolClassId: number): Observable<SchoolClass> {
-    return this.http.get<SchoolClass>(`localhost:8082/api/school-classes/${schoolClassId}`)
+    return this.http.get<SchoolClass>(`localhost:8081/api/school-classes/${schoolClassId}`)
   }
 
   getScheduleById(scheduleId: number): Observable<Schedule> {
-    return this.http.get<Schedule>(`localhost:8082/api/schedule/${scheduleId}`);
+    return this.http.get<Schedule>(`localhost:8081/api/schedule/${scheduleId}`);
   }
 
   getSchoolDetails(): Observable<any> {
     return of();
+  }
+
+  getSchoolClasses(): Observable<SchoolClass[]> {
+    return this.http.get<SchoolClass[]>(`localhost:8081/api/school-classes/all`);
   }
 }
