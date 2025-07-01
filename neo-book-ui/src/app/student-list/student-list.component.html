@@ -1,0 +1,15 @@
+<div class="student-grid">
+  @for (student of sortedStudents; track student.id) {
+    <mat-card
+      class="student-card"
+      [routerLink]="['/students', student.id]"
+      tabindex="0"
+    >
+      <mat-card-content>
+        <div class="student-info">
+          <span class="student-name">{{ student.name }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
