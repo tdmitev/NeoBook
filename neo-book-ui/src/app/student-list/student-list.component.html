@@ -1,0 +1,22 @@
+<div class="student-grid">
+  @for (student of sortedStudents; track student.id) {
+    <mat-card
+      class="student-card"
+      [routerLink]="['/students', student.id]"
+      tabindex="0"
+    >
+      <mat-card-content>
+        <div class="student-info">
+          <span class="student-name">{{ student.name }}</span>
+        </div>
+      </mat-card-content>
+      @if (isCurrentUserTeacher() | async) {
+          <mat-card-actions>
+          <button mat-button (click)="openDialog(student.id, $event)">
+            Enter Score
+          </button>
+        </mat-card-actions>
+      }
+    </mat-card>
+  }
+</div>

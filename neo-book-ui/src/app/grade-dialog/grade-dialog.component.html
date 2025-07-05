@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>Enter Score</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Score</mat-label>
+    <input matInput type="number" [formControl]="scoreControl" />
+
+    @if(scoreControl.invalid) {
+     <mat-error>Please enter a valid score (0–100)</mat-error>
+    }
+
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="scoreControl.invalid">
+    Submit
+  </button>
+</mat-dialog-actions>

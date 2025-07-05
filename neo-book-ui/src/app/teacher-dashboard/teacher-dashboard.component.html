@@ -1,0 +1,20 @@
+@if (teacher()) {
+  <div class="dashboard-container">
+    <mat-card class="parent-info">
+      <mat-card-header>
+        <mat-card-title>Welcome, {{ teacher()!.name }}</mat-card-title>
+      </mat-card-header>
+    </mat-card>
+
+    <div class="children-container">
+      <mat-card class="student-selector">
+        <mat-card-header>
+          <mat-card-title>Students:</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-student-list [students]="students"></app-student-list>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+}

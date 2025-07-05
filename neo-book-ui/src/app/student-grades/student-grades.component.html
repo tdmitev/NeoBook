@@ -1,0 +1,32 @@
+<div>
+  <h3>Grades:</h3>
+  <mat-accordion>
+    @for (group of subjectGrades; track group.subject.id) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ group.subject.name }} (GPA: {{ getSubjectGPA(group.grades) | number: '1.2-2' }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <table mat-table [dataSource]="group.grades" class="mat-elevation-z1">
+
+          <!-- Grade Column -->
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef> Grade </th>
+            <td mat-cell *matCellDef="let grade"> {{ grade.value }} </td>
+          </ng-container>
+
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef> Date </th>
+            <td mat-cell *matCellDef="let grade"> {{ grade.date | date }} </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+</div>
