@@ -7,10 +7,18 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - keycloak-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.2
-    command: start-dev --import-realm
+    command:
+      - start-dev
+      - --import-realm
+      - --health-enabled=true
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin123
@@ -19,19 +27,21 @@ services:
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: ""
+      KC_HEALTH_ENABLED: "true"
     depends_on:
-      - keycloak-db
+      keycloak-db:
+        condition: service_healthy
     volumes:
       - "./realm-export.json:/opt/keycloak/data/import/realm-export.json:ro"
       - "keycloak-data:/opt/keycloak/data"
     ports:
       - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
+      test: ["CMD-SHELL", "echo > /dev/tcp/localhost/9000"]
       interval: 10s
       timeout: 5s
-      start_period: 60s
-      retries: 20
+      start_period: 180s
+      retries: 30
 
   db-user:
     image: postgres:14
